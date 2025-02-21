@@ -38,7 +38,7 @@ class OllamaChatbot:
         self.model = model
         self.chat_history = self.load_chat_history(user_id, agent_name)
         self.system_prompt = system_prompt
-        self.keep_alive = "10m"
+        self.keep_alive = "60m"
 
     def load_chat_history(self, user_id, agent_name):
         if os.path.exists(f"chats/{agent_name}-chat_history-{user_id}.json"):
@@ -81,9 +81,9 @@ class OllamaChatbot:
 
     def chat(self, user_input, agent_name):
         user_id = current_user.get_id()
-        # usernaeme = current_user.username
+        usernaeme = current_user.username
         self.chat_history.append({"role": "user", "content": user_input})
-        # self.chat_history.append({"role": "assistant", "content": f"The current users name is {usernaeme}."})
+        self.chat_history.append({"role": "bot", "content": f"The current users name is {usernaeme}."})
         prompt = "\n".join([f"{entry['role']}: {entry['content']}" for entry in self.chat_history])
         try:
             full_message = ""
