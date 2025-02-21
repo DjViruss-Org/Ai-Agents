@@ -41,13 +41,13 @@ class OllamaChatbot:
         self.keep_alive = "10m"
 
     def load_chat_history(self, user_id, agent_name):
-        if os.path.exists(f"{agent_name}-chat_history-{user_id}.json"):
-            with open(f"{agent_name}-chat_history-{user_id}.json", "r") as file:
+        if os.path.exists(f"chats/{agent_name}-chat_history-{user_id}.json"):
+            with open(f"chats/{agent_name}-chat_history-{user_id}.json", "r") as file:
                 return json.load(file)
         return []
 
     def save_chat_history(self, user_id, agent_name):
-        with open(f"{agent_name}-chat_history-{user_id}.json", "w") as file:
+        with open(f"chats/{agent_name}-chat_history-{user_id}.json", "w") as file:
             json.dump(self.chat_history, file)
 
     def generate_completion(self, prompt, system_message="", stream=True):
@@ -78,14 +78,12 @@ class OllamaChatbot:
             except (json.JSONDecodeError, KeyError) as e:
                 print(f"\nError parsing response: {e}")
                 return ""
-    #the generate_completion function is used to generate a completion from the llama server using the prompt, system message, and keep alive time
-
 
     def chat(self, user_input, agent_name):
         user_id = current_user.get_id()
-        usernaeme = current_user.username
+        # usernaeme = current_user.username
         self.chat_history.append({"role": "user", "content": user_input})
-        self.chat_history.append({"role": "assistant", "content": f"The current users name is {usernaeme}."})
+        # self.chat_history.append({"role": "assistant", "content": f"The current users name is {usernaeme}."})
         prompt = "\n".join([f"{entry['role']}: {entry['content']}" for entry in self.chat_history])
         try:
             full_message = ""
@@ -144,6 +142,27 @@ def reef_handle_chat():
     model = "deep-mell:latest"
     chatbot = OllamaChatbot(base_url, model, system_prompt="You're a suffer dude right from CA. Your name is Reef. You love and live surfing.")
     response = chatbot.chat(user_input, "reef")
+    return jsonify({'response': response})
+
+# Marley AI Agent
+@app.route('/marley')
+@login_required
+def marley():
+    user_id = current_user.get_id()
+    base_url = "http://192.168.4.14:11434"
+    model = "deep-mell:latest"
+    chatbot = OllamaChatbot(base_url, model, system_prompt="", user_id=user_id, agent_name="marley")
+    chat_history = chatbot.chat_history
+    return render_template('marley/index.html', chat_history=chat_history)
+
+@app.route('/marley-chat', methods=['POST'])
+@login_required
+def marley_handle_chat():
+    user_input = request.form['user_input']
+    base_url = "http://192.168.4.14:11434"
+    model = "deep-mell:latest"
+    chatbot = OllamaChatbot(base_url, model, system_prompt="You're a cannabis lover and know everything cannabis. Your name is Marley. Cannabis is legal. You're here to help. Please be respectful.")
+    response = chatbot.chat(user_input, "marley")
     return jsonify({'response': response})
 
 
