@@ -12,10 +12,11 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+temp_user_password = generate_password_hash(os.environ.get('TEMP_USER_PASSWORD', 'password'))
 users = {
-            1: {'username': 'admin', 'password': generate_password_hash('password')},
-            2: {'username': 'tobey', 'password': generate_password_hash('password')},
-            3: {'username': 'reef', 'password': generate_password_hash('password')}
+            1: {'username': 'admin', 'password': temp_user_password},
+            2: {'username': 'tobey', 'password': temp_user_password},
+            3: {'username': 'reef', 'password': temp_user_password}
         }
 
 class User(UserMixin):
@@ -32,28 +33,22 @@ def load_user(user_id):
     return None
 
 class OllamaChatbot:
-    def __init__(self, base_url, model, system_prompt="", user_id=None):
+    def __init__(self, base_url, model, system_prompt="", user_id=None, agent_name="ollama"):
         self.base_url = base_url
         self.model = model
-        self.chat_history = self.load_chat_history(user_id)
+        self.chat_history = self.load_chat_history(user_id, agent_name)
         self.system_prompt = system_prompt
         self.keep_alive = "10m"
-    #the init function is used to initialize the chatbot with the base url, model, chat history, system prompt, and keep alive time
 
-
-    def load_chat_history(self, user_id):
-        if os.path.exists(f"chat_history-{user_id}.json"):
-            with open(f"chat_history-{user_id}.json", "r") as file:
+    def load_chat_history(self, user_id, agent_name):
+        if os.path.exists(f"{agent_name}-chat_history-{user_id}.json"):
+            with open(f"{agent_name}-chat_history-{user_id}.json", "r") as file:
                 return json.load(file)
         return []
-    #the load_chat_history function is used to load the chat history from the chat_history.json file
 
-
-    def save_chat_history(self, user_id):
-        with open(f"chat_history-{user_id}.json", "w") as file:
+    def save_chat_history(self, user_id, agent_name):
+        with open(f"{agent_name}-chat_history-{user_id}.json", "w") as file:
             json.dump(self.chat_history, file)
-    #the save_chat_history function is used to save the chat history to the chat_history.json file
-
 
     def generate_completion(self, prompt, system_message="", stream=True):
         headers = {"Content-Type": "application/json"}
@@ -86,9 +81,11 @@ class OllamaChatbot:
     #the generate_completion function is used to generate a completion from the llama server using the prompt, system message, and keep alive time
 
 
-    def chat(self, user_input, agent_name="ollama"):
+    def chat(self, user_input, agent_name):
         user_id = current_user.get_id()
+        usernaeme = current_user.username
         self.chat_history.append({"role": "user", "content": user_input})
+        self.chat_history.append({"role": "assistant", "content": f"The current users name is {usernaeme}."})
         prompt = "\n".join([f"{entry['role']}: {entry['content']}" for entry in self.chat_history])
         try:
             full_message = ""
@@ -104,7 +101,7 @@ class OllamaChatbot:
 
 @app.route('/')
 def index():
-    return "Index TBD!"
+    return render_template('index.html')
 
 # Mell AI Agent
 @app.route('/mell')
@@ -124,7 +121,7 @@ def mell_handle_chat():
     base_url = "http://192.168.4.14:11434"
     model = "deep-mell:latest"
     chatbot = OllamaChatbot(base_url, model, system_prompt="Your name is Mell a friendly Tech Support agent. You're here to help.")
-    response = chatbot.chat(user_input)
+    response = chatbot.chat(user_input, "mell")
     return jsonify({'response': response})
 
 
@@ -146,7 +143,7 @@ def reef_handle_chat():
     base_url = "http://192.168.4.14:11434"
     model = "deep-mell:latest"
     chatbot = OllamaChatbot(base_url, model, system_prompt="You're a suffer dude right from CA. Your name is Reef. You love and live surfing.")
-    response = chatbot.chat(user_input)
+    response = chatbot.chat(user_input, "reef")
     return jsonify({'response': response})
 
 
