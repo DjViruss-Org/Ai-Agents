@@ -165,7 +165,7 @@
 
     <script>
         $(document).ready(function() {
-            const chatHistory = {{ chat_history | tojson | safe }}; // Assuming this is correctly populated by Flask
+            const chatHistory = {{ chat_history | tojson | safe }};
 
             function appendMessage(role, message) {
                 const avatar = role === 'user' ? 'static/user.jpg' : 'static/artificial-intelligence.png';
@@ -182,7 +182,7 @@
                 $('#chat-history').append(messageContainer);
                 $('#chat-history').scrollTop($('#chat-history')[0].scrollHeight);
             }
-        // This function sends a user message to the chatbot and appends the response to the chat history
+
             function sendMessage() {
                 var userInput = $('#user-input').val();
                 if (userInput.trim() !== '') {
@@ -201,25 +201,21 @@
                         }
                     });
                 }
-            //this dunction is used to send the message to the chatbot
             }
 
             $('#send-button').click(function() {
                 sendMessage();
             });
-            //this function is used to send the message to the chatbot on click of the send button
 
             $('#user-input').keypress(function(event) {
                 if (event.keyCode === 13) {
                     sendMessage();
                 }
             });
-            //this function is used to send the message to the chatbot on the press of enter key
-
+            
             chatHistory.forEach(item => {
                 appendMessage(item.role, item.content);
             });
-            //this function adds the message to the chat history
         });
     </script>
 </body>

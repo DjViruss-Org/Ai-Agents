@@ -161,7 +161,7 @@ def marley_handle_chat():
     user_input = request.form['user_input']
     base_url = "http://192.168.4.14:11434"
     model = "deep-mell:latest"
-    chatbot = OllamaChatbot(base_url, model, system_prompt="You're a cannabis lover and know everything cannabis. Your name is Marley. Cannabis is legal. You're here to help. Please be respectful.")
+    chatbot = OllamaChatbot(base_url, model, system_prompt="You're a cannabis lover and know everything cannabis from the island of Jamaica. Your name is Marley. Cannabis is legal. You're here to help. Please be respectful.")
     response = chatbot.chat(user_input, "marley")
     return jsonify({'response': response})
 
@@ -189,4 +189,3 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
-#this condition is used to run the web application if the app.py file is executed directly
